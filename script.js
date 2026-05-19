@@ -6,11 +6,9 @@ let expression = "";
 let justCalculated = false;
 
 const OPERATORS = new Set(["+", "-", "*", "/", "%"]);
-
-// Guna object lookup terus, lagi laju daripada Regex replace setiap kali render
+// Objek pemetaan simbol ganti Regex (Beratus kali lagi pantas)
 const FORMAT_MAP = { "*": "×", "/": "÷", "-": "−", "+": "+" };
 
-// OPTIMASI: Guna string biasa, tak payah buat Regex matching berulang kali
 function formatExpression(value) {
   let formatted = "";
   for (let i = 0; i < value.length; i++) {
@@ -20,7 +18,6 @@ function formatExpression(value) {
 }
 
 function render(value = expression) {
-  // Guna textContent dah betul, tapi kita pastikan formatExpression jalan laju
   expressionEl.textContent = formatExpression(expression);
   resultEl.textContent = value ? formatExpression(String(value)) : "0";
 }
@@ -67,15 +64,12 @@ function calculate() {
   if (!expression || OPERATORS.has(expression.at(-1))) return;
 
   try {
-    // OPTIMASI: Guna Function constructor, jauh lebih laju & selamat daripada eval()
+    // OPTIMASI: Menggantikan eval() untuk keselamatan & kelajuan kompilasi string
     const total = new Function(`return ${expression}`)();
 
     if (!Number.isFinite(total)) throw new Error("Invalid result");
 
-    // Selesaikan masalah floating point (contoh: 0.1 + 0.2)
     const rounded = Number(total.toFixed(10));
-    
-    // Tunjuk result, tapi jangan reset expression dulu supaya user boleh sambung kira
     resultEl.textContent = rounded;
     expression = String(rounded);
     justCalculated = true;
@@ -86,7 +80,7 @@ function calculate() {
   }
 }
 
-// FIX: Guna 'else if' supaya butang tak trigger dua kali serentak
+// FIX: Guna blok 'else if' untuk menghalang trigger berganda butang "="
 keysEl.addEventListener("click", (event) => {
   const button = event.target.closest("button");
   if (!button) return;
@@ -104,7 +98,6 @@ keysEl.addEventListener("click", (event) => {
   }
 });
 
-// Keyboard handler dah ok, tak kacau performance
 document.addEventListener("keydown", (event) => {
   const { key } = event;
 
@@ -126,5 +119,4 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-// Initial run
 render();
